@@ -13,26 +13,27 @@ const client = new Client({
 
 const PREFIX = "-TTV";
 
+// Servidor keep-alive para Railway
 const app = express();
 app.get("/", (req, res) => res.send("Bot activo"));
-app.listen(3000, () => console.log("Servidor web encendido"));
+app.listen(process.env.PORT || 3000, () =>
+    console.log("Servidor web encendido")
+);
 
-client.once("clientReady", () => {
+// Evento correcto
+client.once("ready", () => {
     console.log("Bot listo");
-client.user.setActivity("TWITCH TAVYUXX", {
-
-    type: 2
+    client.user.setActivity("TWITCH TAVYUXX", { type: 2 });
 });
 
-});
-
+// Bienvenida
 client.on("guildMemberAdd", (member) => {
     const canal = member.guild.channels.cache.get("1438975648180863198");
 
-    if (!canal) return;
+    if (!canal) return console.log("Canal no encontrado para bienvenida.");
 
     const embed = new EmbedBuilder()
-        .setTitle("👋 Bienvenido a el server de Tavyuxx")
+        .setTitle("👋 Bienvenido al server de Tavyuxx")
         .setDescription(`Nos alegra tenerte aquí, ${member}!`)
         .setColor("#B100FF")
         .setImage("https://i.imgur.com/t4obNhs.png");
@@ -40,6 +41,7 @@ client.on("guildMemberAdd", (member) => {
     canal.send({ embeds: [embed] });
 });
 
+// Comandos
 client.on("messageCreate", (message) => {
     if (message.author.bot) return;
 
@@ -63,4 +65,3 @@ client.on("messageCreate", (message) => {
 });
 
 client.login(process.env.TOKEN);
-
