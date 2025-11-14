@@ -1,6 +1,30 @@
+// ============================
+// BOT DE DISCORD LISTO PARA RAILWAY
+// ============================
+
 const { Client, GatewayIntentBits, Partials, EmbedBuilder } = require("discord.js");
 const express = require("express");
 
+// ============================
+// Manejo de errores críticos
+// ============================
+process.on("unhandledRejection", console.error);
+process.on("uncaughtException", console.error);
+
+console.log("Index cargado, iniciando bot...");
+
+// ============================
+// Servidor web para keep-alive
+// ============================
+const app = express();
+app.get("/", (req, res) => res.send("Bot activo"));
+app.listen(process.env.PORT || 3000, () =>
+    console.log("Servidor web encendido")
+);
+
+// ============================
+// Configuración del bot
+// ============================
 const client = new Client({
     intents: [
         GatewayIntentBits.Guilds,
@@ -13,24 +37,20 @@ const client = new Client({
 
 const PREFIX = "-TTV";
 
-// Servidor keep-alive para Railway
-const app = express();
-app.get("/", (req, res) => res.send("Bot activo"));
-app.listen(process.env.PORT || 3000, () =>
-    console.log("Servidor web encendido")
-);
-
-// Evento correcto
+// ============================
+// Evento READY
+// ============================
 client.once("ready", () => {
     console.log("Bot listo");
     client.user.setActivity("TWITCH TAVYUXX", { type: 2 });
 });
 
-// Bienvenida
+// ============================
+// Bienvenida de nuevos miembros
+// ============================
 client.on("guildMemberAdd", (member) => {
     const canal = member.guild.channels.cache.get("1438975648180863198");
-
-    if (!canal) return console.log("Canal no encontrado para bienvenida.");
+    if (!canal) return console.log("Canal de bienvenida no encontrado");
 
     const embed = new EmbedBuilder()
         .setTitle("👋 Bienvenido al server de Tavyuxx")
@@ -38,10 +58,12 @@ client.on("guildMemberAdd", (member) => {
         .setColor("#B100FF")
         .setImage("https://i.imgur.com/t4obNhs.png");
 
-    canal.send({ embeds: [embed] });
+    canal.send({ embeds: [embed] }).catch(console.error);
 });
 
-// Comandos
+// ============================
+// Comandos con prefijo
+// ============================
 client.on("messageCreate", (message) => {
     if (message.author.bot) return;
 
@@ -60,8 +82,16 @@ client.on("messageCreate", (message) => {
         if (descripcion) embed.setDescription(descripcion);
         if (archivo) embed.setImage(archivo.url);
 
-        message.channel.send({ embeds: [embed] });
+        message.channel.send({ embeds: [embed] }).catch(console.error);
     }
 });
 
-client.login(process.env.TOKEN);
+// ============================
+// Login del bot
+// ============================
+if (!process.env.TOKEN) {
+    console.error("❌ TOKEN no encontrado en variables de entorno");
+    process.exit(1);
+}
+
+client.login(process.env.TOKEN).catch(console.error);
